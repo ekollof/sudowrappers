@@ -30,12 +30,27 @@ int (*sys_unlink)(const char *);
 int (*sys_open)(const char *, int, unsigned short);
 int (*sys_open64)(const char *, int, unsigned short);
 FILE *(*sys_fopen)(const char *pathname, const char *mode);
+int (*sys_rename)(const char *, const char *);
 
 void _init(void) {
 	sys_unlink = dlsym(RTLD_NEXT, "unlink");	
 	sys_open = dlsym(RTLD_NEXT, "open");
 	sys_open64 = dlsym(RTLD_NEXT, "open64");
 	sys_fopen = dlsym(RTLD_NEXT, "fopen");
+	sys_rename = dlsym(RTLD_NEXT, "rename");
+
+}
+
+int rename(const char *oldpath, const char *newpath) {
+	if (fileinpath(oldpath, "SUDO_ALLOWED") ||
+		fileinpath(newpath, "SUDO_ALLOWED") ||
+		getenv("SYS_RENAME")) {
+		
+		return sys_rename(oldpath, newpath);
+	}
+
+	errno = EPERM;
+	return -1;
 }
 
 FILE *fopen(const char *pathname, const char *mode) {
