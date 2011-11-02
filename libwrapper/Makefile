@@ -1,12 +1,18 @@
 SRCS=wrapper.c
 OBJS=wrapper.o
+TSTSRC=test.c
+TSTOBJ=test.o
+TSTPRG=test
 LIB=wrapper.so
-CFLAGS=-fPIC -Wall -Werror
-LDFLAGS=-shared -ldl
+WRAPCFLAGS=-fPIC -Wall -shared
+WRAPLDFLAGS=-ldl -lc -nostdlib
 
 
-all: $(OBJS)
-	$(CC) $(LDFLAGS) -o $(LIB)
+all: test
+	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(SRCS)
+
+test: 
+	$(CC) -o $(TSTPRG) $(TSTSRC)
 
 clean:
-	$(RM) -f $(OBJS) $(LIB)
+	$(RM) -f *.o *.so $(TSTPRG) $(LIB)
