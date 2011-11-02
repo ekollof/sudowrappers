@@ -20,10 +20,11 @@ typedef int (*sys_unlink)(const char *);
 
 int unlink(const char *path) { 
 	// Get original unlink address
-	sys_unlink p = dlsym(RTLD_NEXT, "unlink");	
+	// sys_unlink p = dlsym(RTLD_NEXT, "unlink");	
 
 	fprintf(stderr, "\nWrapped unlink called.\n");
 
 	// Call system "unlink" with our check params
-	return p(path);
+	// return p(path);
+	return -1;
 }
