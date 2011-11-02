@@ -1,0 +1,13 @@
+
+The sudowrapper suite, by Emiel Kollof <emiel.kollof@nl.ibm.com>
+
+The sudowrapper suite consists of a set of scripts that will securely let
+user do certain tasks as a priviledged user, and even resort to stubbed/
+modified library calls to enforce security.
+
+REQUIREMENTS:
+
+A unix system with a perl interpreter (which should be fairly common) and
+a Bourne compatible shell. It would be nice if your system supported 
+mechanisms like LD_PRELOAD, but it's not required.
+
