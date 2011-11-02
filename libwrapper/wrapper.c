@@ -40,7 +40,7 @@ void _init(void) {
 
 FILE *fopen(const char *pathname, const char *mode) {
 
-	if (fileinpath(pathname, "SUDO_ALLOWED")) {
+	if (fileinpath(pathname, "SUDO_ALLOWED") || getenv("SYS_FOPEN") != NULL) {
 		return (FILE *) sys_fopen(pathname, mode);
 	}
 
@@ -51,7 +51,7 @@ FILE *fopen(const char *pathname, const char *mode) {
 
 int open(const char *pathname, int flags, unsigned short mode) {
 
-	if (fileinpath(pathname, "SUDO_ALLOWED")) {	
+	if (fileinpath(pathname, "SUDO_ALLOWED") || getenv("SYS_OPEN")) {	
 		return sys_open(pathname, flags, mode);
 	} 
 		
@@ -67,12 +67,11 @@ int unlink(const char *path) {
 
 	printf("\nunlink wrapped\n");
 
-	if (fileinpath(path, "SUDO_ALLOWED")) { 
+	if (fileinpath(path, "SUDO_ALLOWED") || getenv("SYS_UNLINK")) { 
 		return sys_unlink(path);
-	} else { 
-		errno = EPERM;
-		return -1;
-	}
+	}  
+	errno = EPERM;
+	return -1;
 }
 
 int fileinpath(const char *path, const char *envvar) {
