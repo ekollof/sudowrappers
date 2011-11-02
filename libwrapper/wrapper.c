@@ -10,8 +10,8 @@
  *
  */ 
 
-#define _GNU_SOURCE
 
+#define _GNU_SOURCE
 #include <sys/param.h>
 #include <errno.h>
 #include <stdio.h>
@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <string.h>
+#include <signal.h>
 
 extern int errno;
 
@@ -31,6 +32,8 @@ int (*sys_open)(const char *, int, unsigned short);
 int (*sys_open64)(const char *, int, unsigned short);
 FILE *(*sys_fopen)(const char *pathname, const char *mode);
 int (*sys_rename)(const char *, const char *);
+sighandler_t (*sys_signal)(int, sighandler_t);
+int (*sys_unlinkat)(int dirfd, const char *pathname, int flags);
 
 void _init(void) {
 	sys_unlink = dlsym(RTLD_NEXT, "unlink");	
@@ -38,10 +41,29 @@ void _init(void) {
 	sys_open64 = dlsym(RTLD_NEXT, "open64");
 	sys_fopen = dlsym(RTLD_NEXT, "fopen");
 	sys_rename = dlsym(RTLD_NEXT, "rename");
+	sys_signal = dlsym(RTLD_NEXT, "signal");
+	sys_unlinkat = dlsym(RTLD_NEXT, "unlinkat");
 
 }
 
+int unlinkat(int dirfd, const char *pathname, int flags) {
+	if (fileinpath(pathname, "SUDO_ALLOWED") ||
+		getenv("SYS_UNLINK")) {
+		
+		return sys_unlinkat(dirfd, pathname, flags);
+	}
+
+	errno = EPERM;
+	return -1;
+}
+
+sighandler_t signal(int signum, sighandler_t handler) {
+	
+	return sys_signal(signum, handler);
+}
+
 int rename(const char *oldpath, const char *newpath) {
+
 	if (fileinpath(oldpath, "SUDO_ALLOWED") ||
 		fileinpath(newpath, "SUDO_ALLOWED") ||
 		getenv("SYS_RENAME")) {
@@ -64,23 +86,21 @@ FILE *fopen(const char *pathname, const char *mode) {
 }
 
 
-int open(const char *pathname, int flags, unsigned short mode) {
+int open64(const char *pathname, int flags, unsigned short mode) {
 
 	if (fileinpath(pathname, "SUDO_ALLOWED") || getenv("SYS_OPEN")) {	
-		return sys_open(pathname, flags, mode);
+		return sys_open64(pathname, flags, mode);
 	} 
 		
 	errno = EPERM;
 	return -1;
 }
 
-int open64(const char *pathname, int flags, unsigned short mode) {
-	return open(pathname, flags, mode);
+int open(const char *pathname, int flags, unsigned short mode) {
+	return open64(pathname, flags, mode);
 }
 
 int unlink(const char *path) { 
-
-	printf("\nunlink wrapped\n");
 
 	if (fileinpath(path, "SUDO_ALLOWED") || getenv("SYS_UNLINK")) { 
 		return sys_unlink(path);
