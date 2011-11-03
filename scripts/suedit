@@ -41,8 +41,8 @@ use File::Compare;
 use File::stat;
 use Data::Dumper;
 
-my $debug = 1;
-my $verbose = 1;
+my $debug = 0;
+my $verbose = 0;
 my $usewrapper = 0;
 my $wrapper;
 my $dropcreds = 0;
