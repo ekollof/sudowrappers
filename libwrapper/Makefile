@@ -1,23 +1,15 @@
-SRCS=wrapper.c compat.c
-OBJS=wrapper.o compat.o
-TSTSRC=test.c
-TSTOBJ=test.o
-TSTPRG=test
-LIB=wrapper.so
-CFLAGS=-fPIC -Wall -Werror -ansi -pedantic -std=c99
-WRAPLDFLAGS= -shared -fPIC -ldl -lc -nostdlib
-STRIP=strip
 
+all:
+	@echo Valid targets: linux freebsd solaris AIX
 
-all: $(OBJS)
-	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(OBJS)
+linux:
+	@${MAKE} -f Makefile.linux
 
-release: test
-	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(SRCS)
-	$(STRIP) $(LIB)
+freebsd:
+	@${MAKE} -f Makefile.freebsd
 
-test: 
-	$(CC) -o $(TSTPRG) $(TSTSRC)
+solaris:
+	@${MAKE} -f Makefile.solaris
 
-clean:
-	$(RM) -f *.o *.so $(TSTPRG) $(LIB)
+AIX:
+	@${MAKE} -f Makefile.AIX

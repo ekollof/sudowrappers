@@ -1,0 +1,23 @@
+SRCS=wrapper.c compat.c
+OBJS=wrapper.o compat.o
+TSTSRC=test.c
+TSTOBJ=test.o
+TSTPRG=test
+LIB=wrapper.so
+CFLAGS=-fPIC -Wall -Werror -ansi -pedantic -std=c99
+WRAPLDFLAGS= -shared -fPIC -ldl -lc -nostdlib
+STRIP=strip
+
+
+all: $(OBJS)
+	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(OBJS)
+
+release: test
+	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(SRCS)
+	$(STRIP) $(LIB)
+
+test: 
+	$(CC) -o $(TSTPRG) $(TSTSRC)
+
+clean:
+	$(RM) -f *.o *.so $(TSTPRG) $(LIB)
