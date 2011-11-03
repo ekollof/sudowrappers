@@ -67,6 +67,11 @@ int (*sys_rename)(const char *, const char *);
 sighandler_t (*sys_signal)(int, sighandler_t);
 int (*sys_kill)(pid_t, int);
 int (*sys_unlinkat)(int dirfd, const char *pathname, int flags);
+int (*sys_setenv)(const char *name, const char *value, int overwrite);
+int (*sys_unsetenv)(const char *name);
+int (*sys_putenv)(char *string);
+
+
 
 void _init(void) {
 	/* Yay, clash between ISO C and SUSv3, although this
@@ -81,7 +86,44 @@ void _init(void) {
 	*(void **) (&sys_signal) = dlsym(RTLD_NEXT, "signal");
 	*(void **) (&sys_kill) = dlsym(RTLD_NEXT, "kill");
 	*(void **) (&sys_unlinkat) = dlsym(RTLD_NEXT, "unlinkat");
+	*(void **) (&sys_setenv) = dlsym(RTLD_NEXT, "setenv");
+	*(void **) (&sys_unsetenv) = dlsym(RTLD_NEXT, "unsetenv");
+	*(void **) (&sys_putenv) = dlsym(RTLD_NEXT, "putenv");
 }
+
+int putenv(char *string) {
+	if (getenv("PUTENV_ALLOWED")) {
+		return sys_putenv(string);
+	}
+
+	debug("putenv: ");
+	errno = ENOMEM;
+	return -1;
+}
+
+int setenv(const char *name, const char *value, int overwrite) {
+
+	if (fileinpath(name, "SUDO_TOUCHENV") ||
+		getenv("SYS_SETENV")) {
+		return sys_setenv(name, value, overwrite);
+	}
+	debug("setenv: ");
+	errno = EINVAL;
+	return -1;
+}
+
+int unsetenv(const char *name) {
+
+	if (fileinpath(name, "SUDO_TOUCHENV") ||
+		getenv("SYS_SETENV")) {
+		return sys_unsetenv(name);
+	}
+
+	debug("unsetenv: ");
+	errno = EINVAL;
+	return -1;
+}
+
 
 int unlinkat(int dirfd, const char *pathname, int flags) {
 	if (fileinpath(pathname, "SUDO_ALLOWED") ||
