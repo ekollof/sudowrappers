@@ -28,10 +28,11 @@
  * Emiel Kollof <coolvibe@hackerheaven.org>.
  *
  * This library wraps around some fairly common system and library calls
- * to ensure correct behavior. 
+ * to stop any shenanigans. 
  *
  * The following calls will be wrapped:
- * fopen, open/open64/openat, kill, signal, unlink/unlinkat, rename
+ * fopen, open/open64/openat, kill, signal, unlink/unlinkat, rename, 
+ * setenv/putenv, execve
  *
  */ 
 
@@ -72,9 +73,6 @@ int (*sys_unsetenv)(const char *name);
 int (*sys_putenv)(char *string);
 int (*sys_execve)(const char *filename, char *const argv[],
                   char *const envp[]);
-
-
-
 
 void _init(void) {
 	/* Yay, clash between ISO C and SUSv3, although this

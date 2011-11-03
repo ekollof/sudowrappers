@@ -41,8 +41,8 @@ use File::Compare;
 use File::stat;
 use Data::Dumper;
 
-my $debug = 0;
-my $verbose = 0;
+my $debug = 1;
+my $verbose = 1;
 my $usewrapper = 0;
 my $wrapper;
 my $dropcreds = 0;
@@ -110,7 +110,7 @@ sub edit {
 		if ($usewrapper) {
 			# Spam environment with some stuff if wrapper is enabled
 			$ENV{"LD_PRELOAD"}  = $wrapper;
-			$ENV{"SUDO_ALLOWED"} = $tmp . ":" . "$destination";
+			$ENV{"SUDO_ALLOWED"} = $tmp;
 		}
 
 		# Some editors need a termcap. Make sure it can read it.
