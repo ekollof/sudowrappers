@@ -1,22 +1,27 @@
-#!/usr/bin/perl -Tw -Tw
+#!/usr/bin/perl -w 
 #
 # Secure wrapper for an editor that uses $EDITOR.
 
-
 use strict;
-use File::Temp;
+use POSIX;
+use Cwd 'abs_path';
+use File::Temp 'mkstemp';
 use File::Copy;
+use File::Compare;
+use File::stat;
 use Data::Dumper;
 
-
+my $debug = 0;
+my $verbose = 0;
 my $usewrapper = 0;
+my $wrapper;
 my $dropcreds = 0;
 my $tmpdir = "/tmp";
-my @knownreditors = { "vim", "vi" }; # editors that have restricted modes.
 my $origfile;
 my $workfile;
 my $workfh;
 my $createnew = 0;
+my $editor = "vim";
 
 # Functions
 
@@ -25,38 +30,123 @@ sub tempfile() {
 	return ($fh, $filename);
 }
 
+sub edit {
+	my ($tmp, $destination) = @_;
+	my $addargs = "";
+	my $newfile = 0;
+	my $stat;
 
-# MAIN
+	# get owner/group/mode for the file, so we can restore that when
+	# we are done.
+	if (! -e $destination) {
+		$newfile = 1;
+	} else {
+		$stat = stat($destination);	
+	}
+	
 
-# Are there any parameters?
-if ($#ARGV == -1) {
-	print "Need file to edit!\n";
-	exit;
+	if ($usewrapper) {
+		# Spam environment with some stuff if wrapper is enabled
+		$ENV{"LD_PRELOAD"}  = $wrapper;
+		$ENV{"SUDO_ALLOWED"} = $tmp . ":" . "$destination";
+	}
+
+	# editor selection
+	if (getenv("EDITOR")) {
+		$editor = getenv("EDITOR");
+	}
+
+	# Some editors need a termcap. Make sure it can read it.
+	if ($usewrapper) {
+		# check $TERM
+		my $term = $ENV{"TERM"};
+		if (!$term) {
+			$term = "vt100";
+		}
+		my $termpath = "/usr/share/terminfo/" . substr($term, 0, 1) . "/" . $term;
+		!$verbose || !$verbose || print "Adding $termpath\n";
+		$ENV{SUDO_ALLOWED} .= ":$termpath";
+	}
+	
+	if ($editor eq "vi" || $editor eq "vim") {
+		!$verbose || print "Found a vi-like editor.\n";
+		$addargs = "-n"
+	}
+	
+	my $pid = fork();
+	if (!$pid) { # child
+		if (!$addargs) {
+			exec($editor, $tmp);		
+		} else {
+			exec($editor, $addargs, $tmp);
+		}		
+	} else { # parent
+		waitpid($pid, 0);
+	}
+	undef($ENV{"LD_PRELOAD"});
+	undef($ENV{"SUDO_ALLOWED"});
+
+	!$verbose || print "Check if file has changed...\n";
+	if (compare($tmp, $destination) == 0) {
+		!$verbose || print "Nothing changed. Exiting.\n";
+		exit;
+	}
+	!$verbose || print "Moving file to $destination\n";	
+	move($tmp, $destination) || die ("Can't move file. Edited file is in $tmp. Error: $!");
+	if (!$newfile) {
+		chown($stat->uid, $stat->gid, $destination);
+		chmod($stat->mode, $destination);
+	} else {
+		chown(0, 0, $destination);
+		chmod(0644, $destination);
+	}
+	
 }
 
 
+# MAIN
+
+$ENV{"PATH"} = "/bin:/usr/bin:/usr/local/bin";
+
+# Are there any parameters?
+if ($#ARGV == -1) {
+	!$verbose || print "Need file to edit!\n";
+	exit;
+}
+
+if ($debug) {
+	$ENV{"SUDO_DEBUG"} = "True";
+}
+
 # Look for wrapper.so first.
 if ( -e "../libwrapper/wrapper.so") {
+	$wrapper = abs_path("../libwrapper/wrapper.so");
 	$usewrapper = 1;
-} elsif( -e "/opt/sudowrapper/libwrapper/wrapper.so") { 
+} elsif( -e "/opt/sudowrappers/libwrapper/wrapper.so") {
+	$wrapper = "/opt/sudowrappers/libwrapper/wrapper.so";
 	$usewrapper = 1;
 } else {
 	$dropcreds = 1;
 }
 
-if ($usewrapper) {
-	print "Found .so wrapper\n";
-}
-
 ($workfh, $workfile) = tempfile();
-print "Using $workfile.\n";
+!$verbose || print "Using $workfile.\n";
 
 # Parse arguments
-if (! -e $ARGV[0]) {
+if (! -e $ARGV[0]) { # does the file exist?
 	$createnew = 1;	
-} else {
-	
+} 
+
+
+if (! $createnew) {
+	# copy original file to tmpfile
+	copy($ARGV[0], $workfile) || die "Copy failed. Aborting. $!";
 }
+$origfile = $ARGV[0];
+
+
+edit($workfile, $origfile);
+
 
 
 
