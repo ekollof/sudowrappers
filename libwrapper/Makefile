@@ -1,5 +1,5 @@
-SRCS=wrapper.c
-OBJS=wrapper.o
+SRCS=wrapper.c compat.c
+OBJS=wrapper.o compat.o
 TSTSRC=test.c
 TSTOBJ=test.o
 TSTPRG=test
