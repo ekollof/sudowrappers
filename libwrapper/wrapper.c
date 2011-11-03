@@ -49,6 +49,7 @@
 extern int errno;
 
 /* prototypes */
+int siginlist(int, const char *);
 int fileinpath(const char *, const char *);
 void debug(char *, ...);
 
@@ -59,6 +60,7 @@ int (*sys_open64)(const char *, int, unsigned short);
 FILE *(*sys_fopen)(const char *pathname, const char *mode);
 int (*sys_rename)(const char *, const char *);
 sighandler_t (*sys_signal)(int, sighandler_t);
+int (*sys_kill)(pid_t, int);
 int (*sys_unlinkat)(int dirfd, const char *pathname, int flags);
 
 void _init(void) {
@@ -68,6 +70,7 @@ void _init(void) {
 	sys_fopen = dlsym(RTLD_NEXT, "fopen");
 	sys_rename = dlsym(RTLD_NEXT, "rename");
 	sys_signal = dlsym(RTLD_NEXT, "signal");
+	sys_kill = dlsym(RTLD_NEXT, "kill");
 	sys_unlinkat = dlsym(RTLD_NEXT, "unlinkat");
 }
 
@@ -83,9 +86,33 @@ int unlinkat(int dirfd, const char *pathname, int flags) {
 	return -1;
 }
 
-sighandler_t signal(int signum, sighandler_t handler) {
+int kill(pid_t pid, int sig) {
 	
-	return sys_signal(signum, handler);
+	debug("Sending %d to pid %d\n", sig, pid);
+
+	if (siginlist(sig, "SUDO_SIGLIST") ||
+		getenv("SYS_SIGNAL")) {
+			
+		return sys_kill(pid, sig);
+	}	
+	debug("kill: ");
+	errno = EPERM;
+	return -1;
+}
+
+/* NOTE: This is for signal handlers, not for allowing/disallowing signals,
+ * use kill(2) for that
+ */
+sighandler_t signal(int signum, sighandler_t handler) {
+
+	if (siginlist(signum, "SUDO_SIGLIST") ||
+		getenv("SYS_SIGNAL")) {
+			
+		return sys_signal(signum, handler);
+	}	
+	debug("signal: ");
+	errno = EINVAL;
+	return SIG_ERR;
 }
 
 int rename(const char *oldpath, const char *newpath) {
@@ -138,6 +165,33 @@ int unlink(const char *path) {
 	debug( "unlink: ");
 	errno = EPERM;
 	return -1;
+}
+
+int siginlist(int signal, const char *signallist) {
+	/* check if a signal is in the list of allowed signals */
+
+	char *siglist = getenv(signallist);
+	const char *ptr = siglist;
+	char sigstr[256];
+	char *buf;
+	int n;
+
+	if (siglist == NULL) { /* No list, so everything is allowed */
+		return 1;
+	}
+
+	/* abuse sscanf again, just like in fileinpath(); */
+	while(sscanf(ptr, "%255[^:]%n", sigstr, &n) == 1) {
+		asprintf(&buf, "%d", signal);	
+		if (!strcmp(sigstr, buf)) {
+			return 1;
+		}
+		ptr += n;
+		if (*ptr != ':') break;
+		++ptr;
+	}
+	debug("Signal %d not in %s\n", signal, signallist);
+	return 0;
 }
 
 int fileinpath(const char *path, const char *envvar) {
