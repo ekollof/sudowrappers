@@ -1,0 +1,62 @@
+#!/usr/bin/perl -Tw -Tw
+#
+# Secure wrapper for an editor that uses $EDITOR.
+
+
+use strict;
+use File::Temp;
+use File::Copy;
+use Data::Dumper;
+
+
+my $usewrapper = 0;
+my $dropcreds = 0;
+my $tmpdir = "/tmp";
+my @knownreditors = { "vim", "vi" }; # editors that have restricted modes.
+my $origfile;
+my $workfile;
+my $workfh;
+my $createnew = 0;
+
+# Functions
+
+sub tempfile() {
+	my ($fh, $filename) = mkstemp("/tmp/visudo.XXXXXX");
+	return ($fh, $filename);
+}
+
+
+# MAIN
+
+# Are there any parameters?
+if ($#ARGV == -1) {
+	print "Need file to edit!\n";
+	exit;
+}
+
+
+# Look for wrapper.so first.
+if ( -e "../libwrapper/wrapper.so") {
+	$usewrapper = 1;
+} elsif( -e "/opt/sudowrapper/libwrapper/wrapper.so") { 
+	$usewrapper = 1;
+} else {
+	$dropcreds = 1;
+}
+
+if ($usewrapper) {
+	print "Found .so wrapper\n";
+}
+
+($workfh, $workfile) = tempfile();
+print "Using $workfile.\n";
+
+# Parse arguments
+if (! -e $ARGV[0]) {
+	$createnew = 1;	
+} else {
+	
+}
+
+
+
