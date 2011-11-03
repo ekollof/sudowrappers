@@ -49,7 +49,7 @@
 extern int errno;
 
 /* XXX: Find a neater way to do this... */
-#ifdef __FreeBSD__
+#ifdef FREEBSD
 	typedef void (*sighandler_t) (int);
 #endif
 

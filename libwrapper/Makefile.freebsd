@@ -4,7 +4,7 @@ TSTSRC=test.c
 TSTOBJ=test.o
 TSTPRG=test
 LIB=wrapper.so
-CFLAGS=-fPIC -Wall -Werror -ansi -pedantic -std=c99
+CFLAGS=-fPIC -Wall -Werror -ansi -pedantic -std=c99 -DFREEBSD
 WRAPLDFLAGS= -shared -fPIC -lc -nostdlib
 STRIP=strip
 
