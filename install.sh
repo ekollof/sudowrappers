@@ -8,4 +8,5 @@ fi
 mkdir -p /opt/sudowrappers/
 cp -rp * /opt/sudowrappers/
 cd /opt/sudowrappers/libwrapper
-make
+ln -fs /opt/sudowrappers/scripts/suedit /usr/bin
+

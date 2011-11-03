@@ -70,6 +70,9 @@ int (*sys_unlinkat)(int dirfd, const char *pathname, int flags);
 int (*sys_setenv)(const char *name, const char *value, int overwrite);
 int (*sys_unsetenv)(const char *name);
 int (*sys_putenv)(char *string);
+int (*sys_execve)(const char *filename, char *const argv[],
+                  char *const envp[]);
+
 
 
 
@@ -89,7 +92,19 @@ void _init(void) {
 	*(void **) (&sys_setenv) = dlsym(RTLD_NEXT, "setenv");
 	*(void **) (&sys_unsetenv) = dlsym(RTLD_NEXT, "unsetenv");
 	*(void **) (&sys_putenv) = dlsym(RTLD_NEXT, "putenv");
+	*(void **) (&sys_execve) = dlsym(RTLD_NEXT, "execve");
 }
+
+int execve(const char *filename, char *const argv[],
+                  char *const envp[]) {
+	if (getenv("EXEC_ALLOWED")) {
+		return sys_execve(filename, argv, envp);
+	}
+	debug("execve: ");
+	errno = EPERM;
+	return -1;
+}
+
 
 int putenv(char *string) {
 	if (getenv("PUTENV_ALLOWED")) {
