@@ -13,8 +13,8 @@ use File::Compare;
 use File::stat;
 use Data::Dumper;
 
-my $debug = 1;
-my $verbose = 1;
+my $debug = 0;
+my $verbose = 0;
 my $usewrapper = 0;
 my $wrapper;
 my $dropcreds = 0;
@@ -56,7 +56,7 @@ sub edit {
 
 	my ($workfh, $tmp) = tempfile();
 	!$verbose || print "Using $tmp.\n";
-	chown($uid, $gid, $tmp);
+	chown($uid, $gid, $tmp) if $dropcreds;
 
 	# editor selection
 	if (getenv("EDITOR")) {
@@ -101,7 +101,7 @@ sub edit {
 			!$verbose || print "$destination -> $tmp\n";
 			copy($destination, $tmp) || die "Copy failed. Aborting. $!";
 		}
-		chown($uid, $gid, $tmp);
+		chown($uid, $gid, $tmp) if $dropcreds; 
 
 		if (!$addargs) {
 			exec($editor, $tmp);		
