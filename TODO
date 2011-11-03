@@ -1,3 +1,4 @@
 * Test/compile/fix on Solaris and AIX
 * add more syscall wrappers. (setenv/getenv)
+* find a way to limit editing of the environment
 * maybe a logfile/syslog logging
