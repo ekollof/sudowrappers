@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Emiel Kollof <emiel.kollof@nl.ibm.com>
+ * Copyright (c) 2011, Emiel Kollof <coolvibe@hackerheaven.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

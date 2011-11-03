@@ -1,5 +1,5 @@
 
-The sudowrapper suite, by Emiel Kollof <emiel.kollof@nl.ibm.com>
+The sudowrapper suite, by Emiel Kollof <coolvibe@hackerheaven.org>
 
 The sudowrapper suite consists of a set of scripts that will securely let
 user do certain tasks as a priviledged user, and even resort to stubbed/

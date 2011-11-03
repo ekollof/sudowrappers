@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Emiel Kollof <emiel.kollof@nl.ibm.com>
+ * Copyright (c) 2011, Emiel Kollof <coolvibe@hackerheaven.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
 
 /* 
  * This is libwrapper, part of the sudowrapper suite by 
- * Emiel Kollof <emiel.kollof@nl.ibm.com>.
+ * Emiel Kollof <coolvibe@hackerheaven.org>.
  *
  * This library wraps around some fairly common system and library calls
  * to ensure correct behavior. 
