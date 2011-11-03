@@ -48,6 +48,10 @@
 
 extern int errno;
 
+#ifdef __FreeBSD__
+	typedef void (*sighandler_t) (int);
+#endif
+
 /* prototypes */
 int siginlist(int, const char *);
 int fileinpath(const char *, const char *);
