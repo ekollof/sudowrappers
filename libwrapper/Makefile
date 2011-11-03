@@ -4,13 +4,13 @@ TSTSRC=test.c
 TSTOBJ=test.o
 TSTPRG=test
 LIB=wrapper.so
-WRAPCFLAGS=-fPIC -Wall -shared
-WRAPLDFLAGS=-ldl -lc -nostdlib
+CFLAGS=-fPIC -Wall -ansi -pedantic -std=c99
+WRAPLDFLAGS= -shared -fPIC -ldl -lc -nostdlib
 STRIP=strip
 
 
-all: test
-	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(SRCS)
+all: $(OBJS)
+	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(OBJS)
 
 release: test
 	$(CC) $(WRAPCFLAGS) $(WRAPLDFLAGS) -o $(LIB) $(SRCS)
