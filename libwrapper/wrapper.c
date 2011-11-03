@@ -31,7 +31,7 @@
  * to ensure correct behavior. 
  *
  * The following calls will be wrapped:
- * unlink, fopen, open, stat, exec
+ * fopen, open/open64/openat, kill, signal, unlink/unlinkat, rename
  *
  */ 
 
@@ -48,6 +48,7 @@
 
 extern int errno;
 
+/* XXX: Find a neater way to do this... */
 #ifdef __FreeBSD__
 	typedef void (*sighandler_t) (int);
 #endif
