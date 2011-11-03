@@ -1,3 +1,5 @@
+TESTPRG=test
+WRAPPER=wrapper.so
 
 all:
 	@echo Valid targets: linux freebsd solaris AIX
@@ -13,3 +15,6 @@ solaris:
 
 AIX:
 	@${MAKE} -f Makefile.AIX
+
+clean:
+	@${RM} -f *.o *.so *.core core *.obj *~ ${TESTPRG}
