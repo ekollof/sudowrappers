@@ -69,14 +69,18 @@ int (*sys_kill)(pid_t, int);
 int (*sys_unlinkat)(int dirfd, const char *pathname, int flags);
 
 void _init(void) {
-	sys_unlink = dlsym(RTLD_NEXT, "unlink");	
-	sys_open = dlsym(RTLD_NEXT, "open");
-	sys_open64 = dlsym(RTLD_NEXT, "open64");
-	sys_fopen = dlsym(RTLD_NEXT, "fopen");
-	sys_rename = dlsym(RTLD_NEXT, "rename");
-	sys_signal = dlsym(RTLD_NEXT, "signal");
-	sys_kill = dlsym(RTLD_NEXT, "kill");
-	sys_unlinkat = dlsym(RTLD_NEXT, "unlinkat");
+	/* Yay, clash between ISO C and SUSv3, although this
+ 	 * very dirty approach seems to shut up the compiler
+ 	 * about it.
+ 	 */
+	*(void **) (&sys_unlink) = dlsym(RTLD_NEXT, "unlink");	
+	*(void **) (&sys_open) = dlsym(RTLD_NEXT, "open");
+	*(void **) (&sys_open64) = dlsym(RTLD_NEXT, "open64");
+	*(void **) (&sys_fopen) = dlsym(RTLD_NEXT, "fopen");
+	*(void **) (&sys_rename) = dlsym(RTLD_NEXT, "rename");
+	*(void **) (&sys_signal) = dlsym(RTLD_NEXT, "signal");
+	*(void **) (&sys_kill) = dlsym(RTLD_NEXT, "kill");
+	*(void **) (&sys_unlinkat) = dlsym(RTLD_NEXT, "unlinkat");
 }
 
 int unlinkat(int dirfd, const char *pathname, int flags) {
