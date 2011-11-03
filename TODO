@@ -1,0 +1,3 @@
+* Test/compile/fix on Solaris and AIX
+* add more syscall wrappers.
+* maybe a logfile/syslog logging
