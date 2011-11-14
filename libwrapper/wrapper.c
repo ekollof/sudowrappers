@@ -60,6 +60,7 @@ int fileinpath(const char *, const char *);
 void debug(char *, ...);
 
 
+/* make sure these correspond to what's in the respective manual pages. */
 int (*sys_unlink)(const char *);
 int (*sys_open)(const char *, int, unsigned short);
 int (*sys_open64)(const char *, int, unsigned short);

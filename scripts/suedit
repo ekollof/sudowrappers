@@ -164,7 +164,7 @@ sub edit {
 
 $ENV{"PATH"} = "/bin:/usr/bin:/usr/local/bin";
 
-# Are there any parameters?
+# Are there any parameters? TODO: use getopt
 if ($#ARGV == -1) {
 	print "Need file to edit!\n";
 	exit;

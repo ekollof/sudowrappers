@@ -9,5 +9,6 @@ REQUIREMENTS:
 
 A unix system with a perl interpreter (which should be fairly common) and
 a Bourne compatible shell. It would be nice if your system supported 
-mechanisms like LD_PRELOAD, but it's not required.
+mechanisms like LD_PRELOAD, but it's not required. Where the wrapper is
+not available, the scripts will try to drop privs when sensible.
 
