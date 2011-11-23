@@ -55,7 +55,7 @@ my $editor = "vim";
 
 # Functions
 
-sub tempfile() {
+sub tempfile {
 	my ($fh, $filename) = mkstemp("/tmp/visudo.XXXXXX");
 	return ($fh, $filename);
 }
