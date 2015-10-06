@@ -1,5 +1,5 @@
-#!/usr/bin/perl -w 
-# 
+#!/usr/bin/perl -w
+#
 # Copyright (c) 2011, Emiel Kollof <coolvibe@hackerheaven.org>
 # All rights reserved.
 #
@@ -22,7 +22,7 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 # Secure wrapper for an editor that uses $EDITOR and tries to wrap it
 # using our library wrapper. If the library wrapper isn't available, it
 # will try to drop privs.
@@ -56,108 +56,108 @@ my $editor = "vim";
 # Functions
 
 sub tempfile {
-	my ($fh, $filename) = mkstemp("/tmp/visudo.XXXXXX");
-	return ($fh, $filename);
+    my ($fh, $filename) = mkstemp("/tmp/visudo.XXXXXX");
+    return ($fh, $filename);
 }
 
 sub edit {
-	my ($destination) = @_;
-	my $addargs = "";
-	my $newfile = 0;
-	my $stat;
-	my $uid;
-	my $gid;
+    my ($destination) = @_;
+    my $addargs = "";
+    my $newfile = 0;
+    my $stat;
+    my $uid;
+    my $gid;
 
-	# get owner/group/mode for the file, so we can restore that when
-	# we are done.
-	if (! -e $destination) {
-		$newfile = 1;
-	} else {
-		$stat = stat($destination);	
-	}
+    # get owner/group/mode for the file, so we can restore that when
+    # we are done.
+    if (! -e $destination) {
+        $newfile = 1;
+    } else {
+        $stat = stat($destination);
+    }
 
-	# alternative method which drops elevated privs
-	if ($dropcreds) {
-		$uid = $ENV{"SUDO_UID"};
-		$gid = $ENV{"SUDO_GID"}; 
-	}
+    # alternative method which drops elevated privs
+    if ($dropcreds) {
+        $uid = $ENV{"SUDO_UID"};
+        $gid = $ENV{"SUDO_GID"};
+    }
 
-	my ($workfh, $tmp) = tempfile();
-	!$verbose || print "Using $tmp.\n";
-	chown($uid, $gid, $tmp) if $dropcreds;
+    my ($workfh, $tmp) = tempfile();
+    !$verbose || print "Using $tmp.\n";
+    chown($uid, $gid, $tmp) if $dropcreds;
 
-	# editor selection
-	if (getenv("EDITOR")) {
-		$editor = getenv("EDITOR");
-	}
-
-
-	
-	if ($editor eq "vi" || $editor eq "vim") {
-		!$verbose || print "Found a vi-like editor.\n";
-		$addargs = "-n"
-	}
-
-	my $pid = fork();
-	if (!$pid) { # child
-
-		if ($dropcreds) {
-			# Dropping privs is *ugly* in perl. :(
-			$< = $> = $uid;
-			$( = $) = $gid;
-		}
+    # editor selection
+    if (getenv("EDITOR")) {
+        $editor = getenv("EDITOR");
+    }
 
 
-		if ($usewrapper) {
-			# Spam environment with some stuff if wrapper is enabled
-			$ENV{"LD_PRELOAD"}  = $wrapper;
-			$ENV{"SUDO_ALLOWED"} = $tmp;
-		}
 
-		# Some editors need a termcap. Make sure it can read it.
-		if ($usewrapper) {
-			# check $TERM
-			my $term = $ENV{"TERM"};
-			if (!$term) {
-				$term = "vt100";
-			}
-			my $termpath = "/usr/share/terminfo/" . substr($term, 0, 1) . "/" . $term;
-			!$verbose || print "Adding $termpath\n";
-			$ENV{SUDO_ALLOWED} .= ":$termpath";
-		}
+    if ($editor eq "vi" || $editor eq "vim") {
+        !$verbose || print "Found a vi-like editor.\n";
+        $addargs = "-n"
+    }
 
-		if (!$newfile) {
-			!$verbose || print "$destination -> $tmp\n";
-			copy($destination, $tmp) || die "Copy failed. Aborting. $!";
-		}
-		chown($uid, $gid, $tmp) if $dropcreds; 
+    my $pid = fork();
+    if (!$pid) { # child
 
-		if (!$addargs) {
-			exec($editor, $tmp);		
-		} else {
-			exec($editor, $addargs, $tmp);
-		}		
-	} else { # parent
-		waitpid($pid, 0);
-	}
-	undef($ENV{"LD_PRELOAD"});
-	undef($ENV{"SUDO_ALLOWED"});
+        if ($dropcreds) {
+            # Dropping privs is *ugly* in perl. :(
+            $< = $> = $uid;
+            $( = $) = $gid;
+        }
 
-	!$verbose || print "Check if file has changed...\n";
-	if (compare($tmp, $destination) == 0) {
-		!$verbose || print "Nothing changed. Exiting.\n";
-		exit;
-	}
-	!$verbose || print "Moving file to $destination\n";	
-	move($tmp, $destination) || die ("Can't move file. Edited file is in $tmp. Error: $!");
-	if (!$newfile) {
-		chown($stat->uid, $stat->gid, $destination);
-		chmod($stat->mode, $destination);
-	} else {
-		chown(0, 0, $destination);
-		chmod(0644, $destination);
-	}
-	
+
+        if ($usewrapper) {
+            # Spam environment with some stuff if wrapper is enabled
+            $ENV{"LD_PRELOAD"}  = $wrapper;
+            $ENV{"SUDO_ALLOWED"} = $tmp;
+        }
+
+        # Some editors need a termcap. Make sure it can read it.
+        if ($usewrapper) {
+            # check $TERM
+            my $term = $ENV{"TERM"};
+            if (!$term) {
+                $term = "vt100";
+            }
+            my $termpath = "/usr/share/terminfo/" . substr($term, 0, 1) . "/" . $term;
+            !$verbose || print "Adding $termpath\n";
+            $ENV{SUDO_ALLOWED} .= ":$termpath";
+        }
+
+        if (!$newfile) {
+            !$verbose || print "$destination -> $tmp\n";
+            copy($destination, $tmp) || die "Copy failed. Aborting. $!";
+        }
+        chown($uid, $gid, $tmp) if $dropcreds;
+
+        if (!$addargs) {
+            exec($editor, $tmp);
+        } else {
+            exec($editor, $addargs, $tmp);
+        }
+    } else { # parent
+        waitpid($pid, 0);
+    }
+    undef($ENV{"LD_PRELOAD"});
+    undef($ENV{"SUDO_ALLOWED"});
+
+    !$verbose || print "Check if file has changed...\n";
+    if (compare($tmp, $destination) == 0) {
+        !$verbose || print "Nothing changed. Exiting.\n";
+        exit;
+    }
+    !$verbose || print "Moving file to $destination\n";
+    move($tmp, $destination) || die ("Can't move file. Edited file is in $tmp. Error: $!");
+    if (!$newfile) {
+        chown($stat->uid, $stat->gid, $destination);
+        chmod($stat->mode, $destination);
+    } else {
+        chown(0, 0, $destination);
+        chmod(0644, $destination);
+    }
+
 }
 
 
@@ -167,23 +167,23 @@ $ENV{"PATH"} = "/bin:/usr/bin:/usr/local/bin";
 
 # Are there any parameters? TODO: use getopt
 if ($#ARGV == -1) {
-	print "Need file to edit!\n";
-	exit;
+    print "Need file to edit!\n";
+    exit;
 }
 
 if ($debug) {
-	$ENV{"SUDO_DEBUG"} = "True";
+    $ENV{"SUDO_DEBUG"} = "True";
 }
 
 # Look for wrapper.so first.
 if ( -e "../libwrapper/wrapper.so") {
-	$wrapper = abs_path("../libwrapper/wrapper.so");
-	$usewrapper = 1;
+    $wrapper = abs_path("../libwrapper/wrapper.so");
+    $usewrapper = 1;
 } elsif( -e "/opt/sudowrappers/libwrapper/wrapper.so") {
-	$wrapper = "/opt/sudowrappers/libwrapper/wrapper.so";
-	$usewrapper = 1;
+    $wrapper = "/opt/sudowrappers/libwrapper/wrapper.so";
+    $usewrapper = 1;
 } else {
-	$dropcreds = 1;
+    $dropcreds = 1;
 }
 
 edit($ARGV[0]);
